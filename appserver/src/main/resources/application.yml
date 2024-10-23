@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: appserver
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017
+      database: shrinkit-urls
