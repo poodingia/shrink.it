@@ -1,0 +1,3 @@
+rootProject.name = 'shrinkit'
+include 'keygeneration'
+include 'appserver'
