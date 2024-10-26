@@ -2,6 +2,7 @@ package org.uetmydinh.appserver.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.uetmydinh.appserver.exception.UrlNotFoundException;
 import org.uetmydinh.appserver.exception.UrlPersistenceException;
@@ -15,9 +16,11 @@ import java.util.UUID;
 public class UrlService {
     private static final Logger log = LoggerFactory.getLogger(UrlService.class);
     private final UrlRepository urlRepository;
+    private final RedisTemplate<String, Url> redisTemplate;
 
-    public UrlService(UrlRepository urlRepository) {
+    public UrlService(UrlRepository urlRepository, RedisTemplate<String, Url> redisTemplate) {
         this.urlRepository = urlRepository;
+        this.redisTemplate = redisTemplate;
     }
 
     public String shortenUrl(String longUrl) {
@@ -37,15 +40,16 @@ public class UrlService {
     }
 
     public String findOrigin(String id) {
-        return urlRepository.findById(id)
-                .map(url -> {
-                    log.debug("Original URL for id {} found: {}", id, url.getLongUrl());
-                    return url.getLongUrl();
-                })
-                .orElseThrow(() -> {
-                    log.warn("Original URL not found for id: {}", id);
-                    return new UrlNotFoundException(id);
-                });
+        Url cachedUrl = redisTemplate.opsForValue().get(id);
+        if (cachedUrl != null) {
+            log.debug("Original URL for id {} found in cache: {}", id, cachedUrl);
+            return cachedUrl.getLongUrl();
+        }
+
+        Url dbUrl = urlRepository.findById(id).orElseThrow(() -> new UrlNotFoundException(id));
+        log.debug("Original URL for id {} found in database: {}", id, dbUrl);
+        redisTemplate.opsForValue().set(id, dbUrl);
+        return dbUrl.getLongUrl();
     }
 
     private String generateShortKey() {
