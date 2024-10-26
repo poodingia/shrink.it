@@ -24,17 +24,13 @@ public class UrlService {
     }
 
     public String shortenUrl(String longUrl) {
-        log.debug("Shortening URL: {}", longUrl);
-
         String id = generateShortKey();
         Url newUrl = new Url(id, longUrl, Instant.now(), Instant.now(), 0);
 
         try {
             urlRepository.save(newUrl);
-            log.info("Successfully shortened URL {} to {}", longUrl, id);
             return id;
         } catch (Exception e) {
-            log.error("Error saving URL {}", longUrl, e);
             throw new UrlPersistenceException("Unable to shorten URL " + longUrl, e);
         }
     }
@@ -42,12 +38,12 @@ public class UrlService {
     public String findOrigin(String id) {
         Url cachedUrl = redisTemplate.opsForValue().get(id);
         if (cachedUrl != null) {
-            log.debug("Original URL for id {} found in cache: {}", id, cachedUrl);
+            log.debug("Cache hit: {}", id);
             return cachedUrl.getLongUrl();
         }
 
+        log.debug("Cache miss: {}", id);
         Url dbUrl = urlRepository.findById(id).orElseThrow(() -> new UrlNotFoundException(id));
-        log.debug("Original URL for id {} found in database: {}", id, dbUrl);
         redisTemplate.opsForValue().set(id, dbUrl);
         return dbUrl.getLongUrl();
     }
