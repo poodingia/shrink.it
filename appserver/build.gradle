@@ -11,7 +11,7 @@ dependencies {
 
 	// GRPC
 	implementation 'net.devh:grpc-client-spring-boot-starter:3.1.0.RELEASE'
-	compileOnly project(':lib')
+	implementation project(':lib')
 
 	// Lombok
 	compileOnly 'org.projectlombok:lombok:1.18.34'

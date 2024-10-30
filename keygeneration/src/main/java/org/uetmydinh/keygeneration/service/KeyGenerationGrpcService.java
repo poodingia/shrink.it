@@ -1,13 +1,13 @@
 package org.uetmydinh.keygeneration.service;
 
 import io.grpc.stub.StreamObserver;
+import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.uetmydinh.keygeneration.KeyGenerationServiceGrpc.KeyGenerationServiceImplBase;
-import org.uetmydinh.keygeneration.KeyGenerationServiceOuterClass.KeyRequest;
-import org.uetmydinh.keygeneration.KeyGenerationServiceOuterClass.KeyResponse;
+import org.uetmydinh.lib.KeyGenerationRequest;
+import org.uetmydinh.lib.KeyGenerationResponse;
+import org.uetmydinh.lib.KeyGenerationServiceGrpc.KeyGenerationServiceImplBase;
 
-@Service
+@GrpcService
 public class KeyGenerationGrpcService extends KeyGenerationServiceImplBase {
 
     private final KeyGenerationService keyGenerationService;
@@ -18,10 +18,10 @@ public class KeyGenerationGrpcService extends KeyGenerationServiceImplBase {
     }
 
     @Override
-    public void generateKey(KeyRequest request, StreamObserver<KeyResponse> responseObserver) {
+    public void generateKey(KeyGenerationRequest request, StreamObserver<KeyGenerationResponse> responseObserver) {
         keyGenerationService.getAvailableKey().ifPresentOrElse(key -> {
             keyGenerationService.markKeyAsUsed(key);
-            KeyResponse response = KeyResponse.newBuilder().setKeyId(key.getId()).build();
+            KeyGenerationResponse response = KeyGenerationResponse.newBuilder().setKey(key.getId()).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         }, () -> responseObserver.onError(new Exception("No available keys")));

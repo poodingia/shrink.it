@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.uetmydinh.keygeneration.entity.Key;
 import org.uetmydinh.keygeneration.repository.KeyRepository;
@@ -15,6 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.IntStream;
 
 @Component
+@Profile("populate")
 public class KeyPopulate implements CommandLineRunner {
     private static final Logger logger = LoggerFactory.getLogger(KeyPopulate.class);
     private static final char[] CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray();
@@ -59,7 +61,7 @@ public class KeyPopulate implements CommandLineRunner {
 
                         long processed = processedKeys.incrementAndGet();
                         if (processed % 10000 == 0) {
-                            logger.info("Generated {} keys so far...", processed);
+                            logger.info("[{}%] Generated {} keys so far...", processed/TOTAL_KEYS * 100.000,  processed);
                         }
                     }
 
