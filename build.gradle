@@ -19,7 +19,7 @@ allprojects {
     }
 }
 
-ext.springBootProjects = [':appserver', ':keygeneration']
+ext.springBootProjects = [':appserver', ':keygeneration', ':servicediscovery']
 
 subprojects { subproject ->
     apply plugin: 'java'

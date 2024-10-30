@@ -1,16 +1,19 @@
 package org.uetmydinh.appserver.service;
 
+import io.grpc.StatusRuntimeException;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.uetmydinh.appserver.exception.KeyGenerationException;
 import org.uetmydinh.appserver.exception.UrlNotFoundException;
 import org.uetmydinh.appserver.exception.UrlPersistenceException;
 import org.uetmydinh.appserver.model.Url;
 import org.uetmydinh.appserver.repository.UrlRepository;
 import org.uetmydinh.lib.KeyGenerationRequest;
+import org.uetmydinh.lib.KeyGenerationResponse;
 import org.uetmydinh.lib.KeyGenerationServiceGrpc.KeyGenerationServiceBlockingStub;
-import net.devh.boot.grpc.client.inject.GrpcClient;
 
 import java.time.Instant;
 
@@ -21,7 +24,7 @@ public class UrlService {
     private final RedisTemplate<String, Url> redisTemplate;
 
     @GrpcClient("keyGenerationService")
-    private KeyGenerationServiceBlockingStub keyGenerationServiceBlockingStub;
+    private KeyGenerationServiceBlockingStub keyGenerationServiceStub;
 
     public UrlService(UrlRepository urlRepository,
                       RedisTemplate<String, Url> redisTemplate) {
@@ -57,6 +60,17 @@ public class UrlService {
 
     private String generateShortKey() {
         KeyGenerationRequest request = KeyGenerationRequest.newBuilder().build();
-        return keyGenerationServiceBlockingStub.generateKey(request).getKey();
+        try {
+            KeyGenerationResponse response = keyGenerationServiceStub.generateKey(request);
+
+            if (response == null || response.getKey().isEmpty()) {
+                throw new KeyGenerationException("Key Generation Service returned empty key");
+            }
+
+            return response.getKey();
+        } catch (StatusRuntimeException e) {
+            log.error("gRPC call failed: {}", e.getStatus());
+            throw new KeyGenerationException("Error generating key for URL", e);
+        }
     }
 }
