@@ -8,9 +8,11 @@ import org.uetmydinh.appserver.exception.UrlNotFoundException;
 import org.uetmydinh.appserver.exception.UrlPersistenceException;
 import org.uetmydinh.appserver.model.Url;
 import org.uetmydinh.appserver.repository.UrlRepository;
+import org.uetmydinh.lib.KeyGenerationRequest;
+import org.uetmydinh.lib.KeyGenerationServiceGrpc.KeyGenerationServiceBlockingStub;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @Service
 public class UrlService {
@@ -18,13 +20,18 @@ public class UrlService {
     private final UrlRepository urlRepository;
     private final RedisTemplate<String, Url> redisTemplate;
 
-    public UrlService(UrlRepository urlRepository, RedisTemplate<String, Url> redisTemplate) {
+    @GrpcClient("keyGenerationService")
+    private KeyGenerationServiceBlockingStub keyGenerationServiceBlockingStub;
+
+    public UrlService(UrlRepository urlRepository,
+                      RedisTemplate<String, Url> redisTemplate) {
         this.urlRepository = urlRepository;
         this.redisTemplate = redisTemplate;
     }
 
     public String shortenUrl(String longUrl) {
         String id = generateShortKey();
+        log.debug("Generated key: {}", id);
         Url newUrl = new Url(id, longUrl, Instant.now(), Instant.now(), 0);
 
         try {
@@ -49,7 +56,7 @@ public class UrlService {
     }
 
     private String generateShortKey() {
-        // TODO: Replace this logic with gRPC call when available
-        return UUID.randomUUID().toString().substring(0, 6);
+        KeyGenerationRequest request = KeyGenerationRequest.newBuilder().build();
+        return keyGenerationServiceBlockingStub.generateKey(request).getKey();
     }
 }
