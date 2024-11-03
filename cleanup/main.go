@@ -1,12 +1,12 @@
 package main
 
 import (
-    "context"
-    "log"
-    "time"
+	"context"
+	"log"
+	"time"
 
-    "uetmydinh.com/cleanup/db"
-    "go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson"
+	"uetmydinh.com/cleanup/db"
 )
 
 type CleanupRequest struct {
@@ -15,33 +15,35 @@ type CleanupRequest struct {
 
 type URL struct {
     URL string `json:"URL"`
-
+    CreatedAt time.Time `json:"createdAt"`
 }
 
 func main() {
     mongoClient := db.Dbconnect()
     mongoClient.Database("Tom").Collection("Url")
-    scheduleCleanup("https://uet.vnu.edu.vn")
+    scheduleCleanup()
 }
 
-
-
-func cleanupOldRecords(name string) error {
+func cleanupOldRecords() error {
     db := db.MongoCLient
-	filter := bson.D{{Key: "URL", Value: name}}
-	var gameInfo URL 
-    deleteResult, err := db.Database("Tom").Collection("Url").DeleteMany(context.TODO(), filter)
-    if err != nil {
-        return err
-    }
-    log.Printf("Deleted %v documents", deleteResult.DeletedCount)
-	log.Print(gameInfo)
+    currentTime := time.Now()
+    expire := time.Duration(1 * 14 * 60 * 60)
+	filter := bson.M{
+		"$expr": bson.M{
+			"$lt": []interface{}{
+				bson.M{"$add": []interface{}{"$createdAt", expire}},
+				currentTime,
+			},
+		},
+	}	
+    result, err := db.Database("Tom").Collection("Url").DeleteMany(context.TODO(), filter)
+    log.Printf("Deleted %v documents", result.DeletedCount)
     return err
 }
 
-func scheduleCleanup(name string) {
+func scheduleCleanup() {
     for {
-        cleanupOldRecords(name);   
+        cleanupOldRecords();   
         time.Sleep(5 * time.Second)
     }
 }
