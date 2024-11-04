@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: keygeneration
+  devtools:
+    livereload:
+      enabled: true
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: shrinkit-keys
+  output:
+    ansi:
+      enabled: ALWAYS
+
+grpc:
+  server:
+    port: 9090
+
+server:
+  port: 8081
