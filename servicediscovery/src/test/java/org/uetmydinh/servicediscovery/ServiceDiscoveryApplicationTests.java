@@ -1,4 +1,4 @@
-package com.uetmydinh.servicediscovery;
+package org.uetmydinh.servicediscovery;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
