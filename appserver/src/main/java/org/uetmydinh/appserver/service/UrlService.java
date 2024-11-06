@@ -1,5 +1,6 @@
 package org.uetmydinh.appserver.service;
 
+import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.slf4j.Logger;
@@ -69,8 +70,13 @@ public class UrlService {
 
             return response.getKey();
         } catch (StatusRuntimeException e) {
-            log.error("gRPC call failed: {}", e.getStatus());
-            throw new KeyGenerationException("Error generating key for URL", e);
+            if (e.getStatus().getCode() == Status.Code.UNAVAILABLE) {
+                log.error("Key Generation Service ran out of keys");
+                throw new KeyGenerationException("Key Generation Service ran out of keys", e);
+            } else {
+                log.error("gRPC call failed: {}", e.getStatus());
+                throw new KeyGenerationException("Error generating key for URL", e);
+            }
         }
     }
 }
