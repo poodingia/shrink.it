@@ -42,10 +42,14 @@
 
     <!-- Log configuration for the dev profile -->
     <springProfile name="dev">
-        <root level="DEBUG">
+        <root level="INFO">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
         </root>
+        <logger name="org.uetmydinh.appserver" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </logger>
     </springProfile>
 
     <!-- Log configuration for the test profile -->
