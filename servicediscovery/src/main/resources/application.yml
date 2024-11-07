@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: servicediscovery
+server:
+  port: 8761
+eureka:
+  instance:
+    hostname: localhost
+    prefer-ip-address: true
+    lease-expiration-duration-in-seconds: 30
+    lease-renewal-interval-in-seconds: 20
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+  server:
+    enable-self-preservation: true
+
+management:
+  endpoint:
+    shutdown:
+      enabled: true

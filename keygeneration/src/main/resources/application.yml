@@ -16,6 +16,14 @@ spring:
 grpc:
   server:
     port: 9090
-
+    
 server:
   port: 8081
+  
+eureka:
+    client:
+      register-with-eureka: true
+      fetch-registry: true
+    instance:
+      prefer-ip-address: true
+      instance-id: ${spring.application.name}:${server.port}
