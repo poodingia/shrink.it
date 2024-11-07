@@ -15,12 +15,14 @@ public class UrlController {
     }
 
     @PostMapping("/")
+    @CrossOrigin(origins = "http://localhost:5173")
     public ResponseEntity<String> shortenUrl(@RequestBody CreateUrlDTO url) {
         String shortenedUrl = urlService.shortenUrl(url.url());
         return ResponseEntity.ok(shortenedUrl);
     }
 
     @GetMapping("/{id}")
+    @CrossOrigin(origins = "http://localhost:5173")
     public ResponseEntity<String> findOrigin(@PathVariable String id) {
         String longUrl = urlService.findOrigin(id);
         return ResponseEntity.ok(longUrl);
