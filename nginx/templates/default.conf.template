@@ -1,0 +1,36 @@
+# Define number of worker processes
+worker_processes  1;
+
+# Define the events block
+events {
+    worker_connections  1024;  # Adjust as necessary for your load
+}
+
+http {
+    # Define the log format
+    log_format upstreamlog '$server_name to: $upstream_addr [$request] '
+        'upstream response_time $upstream_response_time '
+        'msec $msec request_time $request_time';
+
+    upstream appserver {
+        least_conn;
+        server localhost:8080; # Replace with your service instances
+        server localhost:8082; # Add more servers as needed
+        server localhost:8083;
+    }
+
+    server {
+        listen 80;  # Listen on port 80 for HTTP
+        server_name = localhost;
+
+        access_log logs/access.log upstreamlog;  # Specify log format
+
+        location / {
+            proxy_pass http://appserver;  # Pass requests to the upstream
+            proxy_set_header Host $host;          # Pass the host header
+            proxy_set_header X-Real-IP $remote_addr;  # Pass the real IP
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;  # Pass forwarded for
+            proxy_set_header X-Forwarded-Proto $scheme;  # Pass the protocol
+        }
+    }
+}
