@@ -107,6 +107,16 @@ services:
       EUREKA_INSTANCE_HOSTNAME: keygeneration
       EUREKA_INSTANCE_INSTANCE-ID: keygeneration:8081
 
+  webui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    container_name: webui
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_SERVER_URL: http://localhost:8082
+
 volumes:
   urldb-data:
   keydb-data:
