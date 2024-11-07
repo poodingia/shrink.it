@@ -1,0 +1,113 @@
+services:
+  servicediscovery:
+    build:
+      context: ./servicediscovery
+      dockerfile: Dockerfile
+    container_name: servicediscovery
+    ports:
+      - "8761:8761"
+    environment:
+      SERVER_PORT: 8761
+      EUREKA_INSTANCE_PREFER-IP-ADDRESS: false
+      EUREKA_INSTANCE_HOSTNAME: servicediscovery
+      EUREKA_INSTANCE_INSTANCE-ID: servicediscovery:8761
+
+  urldb:
+    image: mongo:5.0
+    container_name: urldb
+    ports:
+      - "27017:27017"
+    volumes:
+      - urldb-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: shrinkit-urls
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+
+  keydb:
+    image: mongo:5.0
+    container_name: keydb
+    ports:
+      - "27018:27017"
+    volumes:
+      - keydb-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: shrinkit-keys
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+
+  redis:
+    image: redis:7.4.1-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - redis-data:/data
+    
+  appserver:
+    build:
+      context: ./appserver
+      dockerfile: Dockerfile
+    container_name: appserver
+    ports:
+      - "8082:8082"
+    depends_on:
+      - servicediscovery
+      - urldb
+      - redis
+      - keygeneration
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATA_MONGODB_URI: mongodb://urldb:27017
+      SPRING_DATA_MONGODB_DATABASE: shrinkit-urls
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      GRPC_CLIENT_KEYGENERATIONSERVICE_ADDRESS: discovery:///keygeneration
+      GRPC_CLIENT_KEYGENERATIONSERVICE_ENABLE-KEEP-ALIVE: true
+      GRPC_CLIENT_KEYGENERATIONSERVICE_KEEP-ALIVE-WITHOUT-CALLS: true
+      GRPC_CLIENT_KEYGENERATIONSERVICE_NEGOTIATIONTYPE: plaintext
+      SERVER_PORT: 8082
+      EUREKA_CLIENT_REGISTER-WITH-EUREKA: true
+      EUREKA_CLIENT_FETCH-REGISTRY: true
+      EUREKA_SERVER_URL: http://servicediscovery:8761/eureka/
+      EUREKA_INSTANCE_PREFER-IP-ADDRESS: false
+      EUREKA_INSTANCE_HOSTNAME: appserver
+      EUREKA_INSTANCE_INSTANCE-ID: appserver:8082
+
+  keygeneration:
+    build:
+      context: ./keygeneration
+      dockerfile: Dockerfile
+    container_name: keygeneration
+    ports:
+      - "8081:8081"
+      - "9090:9090"
+    depends_on:
+      - servicediscovery
+      - keydb
+    environment:
+      SPRING_PROFILES_ACTIVE: populate
+      SPRING_DATA_MONGODB_URI: mongodb://keydb:27017
+      SPRING_DATA_MONGODB_DATABASE: shrinkit-keys
+      EUREKA_CLIENT_REGISTER-WITH-EUREKA: true
+      EUREKA_CLIENT_FETCH-REGISTRY: true
+      EUREKA_SERVER_URL: http://servicediscovery:8761/eureka/
+      EUREKA_INSTANCE_PREFER-IP-ADDRESS: false
+      EUREKA_INSTANCE_HOSTNAME: keygeneration
+      EUREKA_INSTANCE_INSTANCE-ID: keygeneration:8081
+
+volumes:
+  urldb-data:
+  keydb-data:
+  redis-data:
