@@ -6,68 +6,87 @@ A microservices-based URL shortening system built with Java Spring Boot and Go.
 
 ### Prerequisites
 
-- Eclipse Temurin JDK 17 or higher
-- Gradle 8.10.2 or higher
-- Docker 27.2.0 or higher
-- nginx 1.26.2 or higher
+- JDK 17+ (Eclipse Temurin preferred)
+- Gradle 8.10.2+
+- Docker 27.2.0+
+- Nginx 1.26.2+
+- Node.js 20.11.0+ (for the frontend)
 
 ### Setting Up the Project
 
-- Using `nginx/default.conf.template` as a template.
+- Configure **nginx** using the provided `nginx/default.conf.template` file. Modify it to fit your deployment environment.
 
-### Building the Project
+### Running the Backend
+#### Building
 
-To build the entire project, run the following command from the root directory:
+Build the entire backend project:
 
 ```bash
 ./gradlew build
 ```
 
-To build a specific module, run the following command from the root directory:
+Build a specific backend module:
 
 ```bash
 ./gradlew :<module-name>:build
 ```
 
-### Running the Project
-
-#### Run using Gradle
-=======
-To run the entire project, run the following command from the root directory:
+#### Running
+Run the entire backend project:
 
 ```bash
 ./gradlew bootRun
 ```
 
-To run a specific module, run the following command from the root directory:
+Run a specific backend module:
 
 ```bash
 ./gradlew :<module-name>:bootRun
 ```
 
-#### Run using Docker
-Build images:
+To run multiple instances of a module on different ports:
+
+```bash
+./gradlew :<module-name>:bootRun --args='--server.port=<port>'
+```
+
+### Running the Frontend
+
+#### Setting Up
+Create a `.env` file based on the `ui/.env.template` file and populate environment variables.
+
+Install dependencies:
+```bash
+cd ui
+npm ci
+```
+
+#### Running
+Start development server:
+```bash
+npm run dev
+```
+
+
+### Running all services with Docker Compose
+Docker Compose allows running both the backend and frontend services together.
+
+Build Docker images:
 ```bash
 docker-compose build
 ```
 
-Run containers:
+Start Docker containers:
 ```bash
 docker-compose up
 ```
 
-Build images and run containers in one command:
+Or, to build and start the containers in one step:
 ```bash
 docker-compose up --build
 ```
 
-Stop containers:
+Stop running containers:
 ```bash
 docker-compose down
-```
-=======
-To run multiple instance, run the following command from the root directory:
-
-```bash
-./gradlew :<module-name>:bootRun --args='--server.port=<port>'
 ```
