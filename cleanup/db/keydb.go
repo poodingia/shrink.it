@@ -3,24 +3,21 @@ package db
 import (
 	"context"
 	"log"
-	"sync"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var lock = &sync.Mutex{}
+var KeyMongoCLient *mongo.Client;
 
-var MongoCLient *mongo.Client;
+func KeyDbconnect() *mongo.Client {
 
-func Dbconnect() *mongo.Client {
-
-	if (MongoCLient == nil) {
+	if (KeyMongoCLient == nil) {
 		// Set client options
 		lock.Lock()
 		defer lock.Unlock()
-		if MongoCLient == nil {
-			log.Print("Connecting to MongoDB!")
+		if KeyMongoCLient == nil {
+			log.Print("Connecting to Key DB!")
 			clientOptions := options.Client().ApplyURI("mongodb+srv://poodingia1212:aNRdjveBiFSSLFGD@tom.vmdqr.mongodb.net/Tom")
 	
 			// Connect to MongoDB
@@ -29,10 +26,10 @@ func Dbconnect() *mongo.Client {
 				log.Fatal(err)
 			}
 
-			MongoCLient = client
+			KeyMongoCLient = client
 		
 			// Check the connection
-			err = MongoCLient.Ping(context.TODO(), nil)
+			err = KeyMongoCLient.Ping(context.TODO(), nil)
 		
 			if err != nil {
 				log.Fatal(err)
@@ -46,5 +43,5 @@ func Dbconnect() *mongo.Client {
 		log.Print("Connection to MongoDB already created.")
 	}
 
-	return MongoCLient
+	return KeyMongoCLient
 }
