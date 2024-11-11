@@ -2,8 +2,9 @@ package db
 
 import (
 	"context"
+	"os"
 	"log"
-
+    "github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -11,6 +12,10 @@ import (
 var KeyMongoCLient *mongo.Client;
 
 func KeyDbconnect() *mongo.Client {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	  }
 
 	if (KeyMongoCLient == nil) {
 		// Set client options
@@ -18,7 +23,7 @@ func KeyDbconnect() *mongo.Client {
 		defer lock.Unlock()
 		if KeyMongoCLient == nil {
 			log.Print("Connecting to Key DB!")
-			clientOptions := options.Client().ApplyURI("mongodb+srv://poodingia1212:aNRdjveBiFSSLFGD@tom.vmdqr.mongodb.net/Tom")
+			clientOptions := options.Client().ApplyURI(os.Getenv("KEYDB_URL"))
 	
 			// Connect to MongoDB
 			client, err := mongo.Connect(context.TODO(), clientOptions)
