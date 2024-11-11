@@ -1,4 +1,4 @@
-package org.uetmydinh.keygeneration.util;
+package org.uetmydinh.keygeneration.tasks;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.uetmydinh.keygeneration.entity.Key;
 import org.uetmydinh.keygeneration.repository.KeyRepository;
+import org.uetmydinh.keygeneration.util.FileUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,8 +19,8 @@ import java.util.stream.IntStream;
 
 @Component
 @Profile("populate")
-public class KeyPopulate implements CommandLineRunner {
-    private static final Logger logger = LoggerFactory.getLogger(KeyPopulate.class);
+public class KeyPopulationTask implements CommandLineRunner {
+    private static final Logger logger = LoggerFactory.getLogger(KeyPopulationTask.class);
     private static final char[] CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray();
     private static final int KEY_LENGTH = 5;
     private static final long TOTAL_KEYS = (long) Math.pow(CHARACTERS.length, KEY_LENGTH);
@@ -29,7 +30,7 @@ public class KeyPopulate implements CommandLineRunner {
     private final KeyRepository keyRepository;
 
     @Autowired
-    public KeyPopulate(KeyRepository keyRepository) {
+    public KeyPopulationTask(KeyRepository keyRepository) {
         this.keyRepository = keyRepository;
     }
 
