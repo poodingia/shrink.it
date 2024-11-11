@@ -97,7 +97,7 @@ services:
       - servicediscovery
       - keydb
     environment:
-      SPRING_PROFILES_ACTIVE: populate
+#      SPRING_PROFILES_ACTIVE: populate
       SPRING_DATA_MONGODB_URI: mongodb://keydb:27017
       SPRING_DATA_MONGODB_DATABASE: shrinkit-keys
       EUREKA_CLIENT_REGISTER-WITH-EUREKA: true
