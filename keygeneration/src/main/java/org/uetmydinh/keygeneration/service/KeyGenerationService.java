@@ -27,7 +27,7 @@ public class KeyGenerationService {
     private final KeyCacheConfig keyCacheConfig;
     private final ScheduledExecutorService scheduler;
     private final KeyCacheRefillTask keyCacheRefillTask;
-    private final AtomicBoolean refillInProgress = new AtomicBoolean(false);
+    private final AtomicBoolean refillInProgress;
     private int batchSize;
     private static final Logger log = LoggerFactory.getLogger(KeyGenerationService.class);
 
@@ -35,30 +35,47 @@ public class KeyGenerationService {
     public KeyGenerationService(MongoTemplate mongoTemplate, KeyCacheConfig keyCacheConfig) {
         this.mongoTemplate = mongoTemplate;
         this.keyCacheConfig = keyCacheConfig;
-        this.keyCache = keyCacheConfig.keyCache();
-        this.batchSize = keyCacheConfig.initialBatchSize();
-        this.keyCacheRefillTask = new KeyCacheRefillTask(mongoTemplate, keyCache, batchSize);
-        this.scheduler = Executors.newSingleThreadScheduledExecutor();
 
-        refillCache();
-        scheduleRefill();
+        if (keyCacheConfig.enabled()) {
+            this.keyCache = keyCacheConfig.keyCache();
+            this.batchSize = keyCacheConfig.initialBatchSize();
+            this.keyCacheRefillTask = new KeyCacheRefillTask(mongoTemplate, keyCache, batchSize);
+            this.scheduler = Executors.newSingleThreadScheduledExecutor();
+            this.refillInProgress = new AtomicBoolean(false);
+            refillCache();
+            scheduleRefill();
+        } else {
+            this.keyCache = null;
+            this.batchSize = 0;
+            this.keyCacheRefillTask = null;
+            this.scheduler = null;
+            this.refillInProgress = null;
+        }
     }
 
     public Optional<Key> getAvailableKey() {
+        if (keyCacheConfig.enabled()) {
+            return Optional.ofNullable(getAvailableKeyFromCache());
+        } else {
+            return Optional.ofNullable(getAvailableKeyFromDatabase());
+        }
+    }
+
+    private Key getAvailableKeyFromCache() {
         Key key = keyCache.poll();
         if (key == null) {
             log.warn("[CACHE MISS] Fetching key directly from database");
             key = getAvailableKeyFromDatabase();
-            if (key != null) {
+            if (key == null) {
+                log.error("No more keys available in database.");
+            } else {
                 log.debug("Fetched key directly from database: {}", key.getId());
                 asyncRefillCacheIfNeeded();
-            } else {
-                log.error("No more keys available in database.");
             }
         } else {
             log.debug("[CACHE HIT] Fetched key from cache: {}", key.getId());
         }
-        return Optional.ofNullable(key);
+        return key;
     }
 
     private Key getAvailableKeyFromDatabase() {
