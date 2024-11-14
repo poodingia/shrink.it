@@ -6,5 +6,6 @@ import org.uetmydinh.keygeneration.entity.Key;
 import java.util.Optional;
 
 public interface KeyRepository extends MongoRepository<Key, String> {
+    @Deprecated
     Optional<Key> findFirstByIsUsedFalse();
 }

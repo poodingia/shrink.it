@@ -33,7 +33,6 @@ public class KeyGenerationGrpcService extends KeyGenerationServiceImplBase {
         if (key.isPresent()) {
             Key keyEntity = key.get();
             log.info("Retrieved key: {}", keyEntity.getId());
-            keyGenerationService.markKeyAsUsed(keyEntity);
             KeyGenerationResponse response = KeyGenerationResponse.newBuilder().setKey(keyEntity.getId()).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
