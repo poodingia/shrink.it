@@ -1,7 +1,6 @@
 package org.uetmydinh.keygeneration.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.uetmydinh.keygeneration.entity.Key;
@@ -32,7 +31,6 @@ public class KeyCacheConfig {
     }
 
     @Bean
-    @ConditionalOnProperty(value = "keycache.enabled", havingValue = "true")
     public Queue<Key> keyCache() {
         return new ConcurrentLinkedQueue<>();
     }
