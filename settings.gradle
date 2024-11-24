@@ -1,3 +1,6 @@
 rootProject.name = 'shrinkit'
 include 'keygeneration'
 include 'appserver'
+include 'lib'
+include 'servicediscovery'
+

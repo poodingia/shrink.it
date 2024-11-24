@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: keygeneration
+  devtools:
+    livereload:
+      enabled: true
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: shrinkit-keys
+  output:
+    ansi:
+      enabled: ALWAYS
+
+grpc:
+  server:
+    port: 9090
+    
+server:
+  port: 8081
+  
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+logging:
+  level:
+    org.uetmydinh.keygeneration: DEBUG
