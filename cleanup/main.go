@@ -9,10 +9,6 @@ import (
 	"uetmydinh.com/cleanup/db"
 )
 
-type CleanupRequest struct {
-    AgeInDays int `json:"age_in_days"`
-}
-
 type URL struct {
 	ID string `bson:"_id"`
     URL string `bson:"URL"`
