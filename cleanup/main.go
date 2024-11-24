@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"time"
+	"os"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"uetmydinh.com/cleanup/db"
@@ -16,30 +17,30 @@ type URL struct {
 }
 
 func main() {
-    urlDb := db.UrlDbconnect()
-    urlDb.Database("Tom").Collection("Url")
-    keyDb := db.KeyDbconnect()
-    keyDb.Database("Tom").Collection("Key")
+    db.UrlDbconnect()
+    db.KeyDbconnect()
     scheduleCleanup()
 }
 
 func cleanupOldRecords() ([]string, error) {
     db := db.UrlMongoCLient
     currentTime := time.Now()
-    expire := time.Duration(0 * 14 * 60 * 60)
-    log.Printf("Current time: %v", currentTime)
+    expire := time.Duration(31) * 24 * time.Hour
+	expiredTime := currentTime.Add(-expire)
+    log.Printf("Expired time: %v", expiredTime)
 	filter := bson.M{
 		"$expr": bson.M{
-			"$lt": []interface{}{
-				bson.M{"$add": []interface{}{"$createdAt", expire}},
-				currentTime,
+			"$gt": []interface{}{
+				expiredTime,
+				"$createdAt",
 			},
 		},
 	}	
-    cursor, err := db.Database("Tom").Collection("Url").Find(context.TODO(), filter)
+    cursor, err := db.Database(os.Getenv("URLDB_DB")).Collection(os.Getenv("URLDB_COLLECTION")).Find(context.TODO(), filter)
 	if err != nil {
 		return nil, err
 	}
+
 	defer cursor.Close(context.TODO())
 	var results []string
 	for cursor.Next(context.TODO()) {
@@ -48,23 +49,23 @@ func cleanupOldRecords() ([]string, error) {
 			log.Printf("Error decoding document: %v", err)
 			continue
 		}
+		log.Printf("Found document with ID : %v, expiredAt: %v", doc.ID, doc.CreatedAt)	
+		
 		results = append(results, doc.ID)
 	}
 
 	if err := cursor.Err(); err != nil {
 		return nil, err
 	}
+
 	resultLength := len(results)
 
-	for _, doc := range results {
-		log.Printf("Found document with ID : %v", doc)
-	}
-
 	log.Printf("Total documents found: %d", resultLength)
-    db.Database("Tom").Collection("Url").DeleteMany(context.TODO(), filter)
+
     if resultLength == 0 {
         return []string{""}, nil
     }
+
 	return results, nil
 }
 
@@ -80,7 +81,7 @@ func returnExpiredKeys(idList []string) error {
             "isUsed": false,
         },
     }
-    result, err := db.Database("Tom").Collection("Key").UpdateMany(context.TODO(), filter, updateFilter)
+    result, err := db.Database(os.Getenv("KEYDB_DB")).Collection(os.Getenv("URLDB_COLLECTION")).UpdateMany(context.TODO(), filter, updateFilter)
 
     log.Printf("The number of modified documents: %d\n", result.ModifiedCount)
     return err
