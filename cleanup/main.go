@@ -62,6 +62,8 @@ func cleanupOldRecords() ([]string, error) {
 
 	log.Printf("Total documents found: %d", resultLength)
 
+    db.Database(os.Getenv("URLDB_DB")).Collection(os.Getenv("URLDB_COLLECTION")).DeleteMany(context.TODO(), filter)
+
     if resultLength == 0 {
         return []string{""}, nil
     }
