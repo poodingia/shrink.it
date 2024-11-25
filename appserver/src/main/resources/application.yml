@@ -36,6 +36,54 @@ eureka:
       prefer-ip-address: true
       instance-id: ${spring.application.name}:${server.port}
 
+resilience4j:
+  circuitbreaker:
+    instances:
+      kgsCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000ms
+        permittedNumberOfCallsInHalfOpenState: 5
+        slidingWindowType: TIME_BASED
+        minimumNumberOfCalls: 100
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - java.lang.RuntimeException
+          - java.io.IOException
+          - io.grpc.StatusRuntimeException
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: 5000ms
+  retry:
+    configs:
+      default:
+        maxAttempts: 4
+        waitDuration: 1000ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+    instances:
+      kgsRetry:
+        baseConfig: default
+  bulkhead:
+    configs:
+      default:
+        maxConcurrentCalls: 1000
+        maxWaitDuration: 2000ms
+    instances:
+      kgsBulkhead:
+        baseConfig: default
 cors:
   allowedOrigins:
     - http://localhost:5173
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true

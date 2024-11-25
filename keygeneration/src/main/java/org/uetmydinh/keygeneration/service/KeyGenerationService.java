@@ -70,7 +70,6 @@ public class KeyGenerationService {
                 log.error("No more keys available in database.");
             } else {
                 log.debug("Fetched key directly from database: {}", key.getId());
-                asyncRefillCacheIfNeeded();
             }
         } else {
             log.debug("[CACHE HIT] Fetched key from cache: {}", key.getId());
